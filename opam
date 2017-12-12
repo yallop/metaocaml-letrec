@@ -1,0 +1,19 @@
+opam-version: "1.2"
+name: "letrec"
+version: "dev"
+maintainer: "Jeremy Yallop <yallop@gmail.com>"
+authors: "Jeremy Yallop <yallop@gmail.com>"
+homepage: "https://github.com/yallop/metaocaml-letrec"
+dev-repo: "http://github.com/yallop/metaocaml-letrec.git"
+bug-reports: "http://github.com/yallop/metaocaml-letrec/issues"
+license: "MIT"
+build: [[make]]
+build-test: [[make "all" "test"]]
+install: [make "install"]
+remove: ["ocamlfind" "remove" "letrec"]
+depends: [
+  "ocamlfind" {build}
+  "ocamlbuild" {build}
+  "delimcc"
+]
+available: [ compiler = "4.04.0+BER" ]

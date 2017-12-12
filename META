@@ -1,0 +1,12 @@
+version = "dev"
+description = "let rec generation for MetaOCaml"
+requires = "delimcc compiler-libs"
+archive(byte) = "letrec.cma"
+exists_if = "letrec.cma"
+
+package "ppx" (
+  version = "dev"
+  description = "let rec generation for MetaOCaml: syntax extension"
+  requires(ppx_driver) = "letrec compiler-libs"
+  ppx = "./ppx_letrec.byte"
+)

@@ -1,0 +1,7 @@
+"lib": include
+"lib_test": include
+"ppx": include
+
+<lib_test/*.*>: package(delimcc), ppx(../ppx_letrec.byte)
+<lib/letrec.*>: package(delimcc,compiler-libs)
+<ppx/*.*>: package(compiler-libs)
