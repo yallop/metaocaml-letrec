@@ -1,7 +1,7 @@
-all: check-compiler letrec.cma ppx_letrec.byte
-
 OCAMLBUILD=ocamlbuild -use-ocamlfind -ocamlc '-toolchain metaocaml ocamlc' \
                                      -ocamlopt '-toolchain metaocaml ocamlopt'
+
+all: check-compiler letrec.cma letrec.cmxa ppx_letrec.byte
 
 test: tests.byte
 	./tests.byte 
@@ -9,6 +9,7 @@ test: tests.byte
 install:
 	ocamlfind install letrec META \
           _build/lib/*.cma            \
+          _build/lib/*.cmx            \
           _build/lib/*.cmi            \
           _build/lib/*.mli            \
           _build/ppx/ppx_letrec.byte  
@@ -19,7 +20,16 @@ uninstall:
 clean:
 	$(OCAMLBUILD) -clean
 
-%.cma %.native %.byte:
+%.cma:
+	$(OCAMLBUILD) -use-ocamlfind $@
+
+%.cmxa:
+	$(OCAMLBUILD) -use-ocamlfind $@
+
+%.native:
+	$(OCAMLBUILD) -use-ocamlfind $@
+
+%.byte:
 	$(OCAMLBUILD) -use-ocamlfind $@
 
 tests.byte: letrec.cma lib_test/tests.ml
