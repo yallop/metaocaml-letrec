@@ -10,6 +10,8 @@ install:
 	ocamlfind install letrec META \
           _build/lib/*.cma            \
           _build/lib/*.cmx            \
+          _build/lib/*.cmxa           \
+          _build/lib/*.a              \
           _build/lib/*.cmi            \
           _build/lib/*.mli            \
           _build/ppx/ppx_letrec.byte  
