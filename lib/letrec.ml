@@ -209,22 +209,21 @@ struct
 end
 
 (* Define a simple 'letrec' for monomorphic recursion
-   in terms of the more general implementation along with
-   polymorphic equality *)
+   in terms of the more general implementation *)
 let letrec  : type a b c.
+  ?equal:(a -> a -> bool) -> 
   ((a -> b code) -> a -> b code) ->
   ((a -> b code) -> c code) -> c code =
+  fun ?(equal=(=)) rhs body ->
   let module N = struct type _ t = T : a -> b t  end in
   let module Sym : SYMBOL with type 'a t = 'a N.t =
   struct
     type 'a t = 'a N.t
-    (* Use Pervasives.(=) *)
     let eql : type a b. a t -> b t -> (a, b) eql option =
-      fun (N.T x) (N.T y) -> match x = y with
+      fun (N.T x) (N.T y) -> match equal x y with
         | true -> Some Refl
         | false -> None
   end in
-  fun rhs body ->
     let module R = Make(Sym) in
     let resolve r sym = r.R.resolve (N.T sym) in
     let rhs (type d) r (N.T (sym : a) : d R.sym) : d code =

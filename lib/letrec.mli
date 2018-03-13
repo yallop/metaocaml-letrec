@@ -9,7 +9,8 @@
 (** Simple interface for generating mutually-recursive functions, for
     the case where recursion is monomorphic, all the functions have
     the same type, and indexes support polymorphic equality.  *)
-val letrec : (('a -> 'b code) -> 'a -> 'b code) ->
+val letrec : ?equal:('a -> 'a -> bool) ->
+             (('a -> 'b code) -> 'a -> 'b code) ->
              (('a -> 'b code) -> 'c code) -> 'c code
 
 
