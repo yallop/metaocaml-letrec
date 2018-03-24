@@ -14,6 +14,5 @@ remove: ["ocamlfind" "remove" "letrec"]
 depends: [
   "ocamlfind" {build}
   "ocamlbuild" {build}
-  "delimcc"
 ]
-available: [ compiler = "4.04.0+BER" ]
+available: [ compiler = "4.04.2+ber-multicore" ]

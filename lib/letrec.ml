@@ -143,8 +143,6 @@ end
 
 module Make(Sym: SYMBOL) : S with type 'a sym = 'a Sym.t =
 struct
-  open Delimcc
-
   type 'a sym = 'a Sym.t
   type resolve = { resolve: 'a. 'a sym -> 'a code }
   type rhs = { rhs: 'a.resolve -> 'a sym -> 'a code }
@@ -152,17 +150,15 @@ struct
   type table =
     Nil : table
   | Cons : 'a sym * 'a code * table -> table
-  
-  type 'a req = 
-    | Done: 'a -> 'a req
-    | MakeSlot': ('a ref code * 'a code -> 'b req) -> 'b req
-    | SetSlot' : ('a ref code * 'a code) * (unit -> 'b req) -> 'b req
 
-  let make_slot' : 'a 'b. 'b req prompt -> 'a ref code * 'a code =
-    fun p  -> shift0 p (fun k -> MakeSlot' k)
+  effect MakeSlot' : ('a ref code * 'a code)
+  effect SetSlot' : ('a ref code * 'a code) -> unit
 
-  let set_slot': 'a 'b. 'b req prompt -> ('a ref code * 'a code) -> unit =
-    fun p rx -> shift0 p (fun k -> SetSlot' (rx, k))
+  let make_slot' : 'a. unit -> 'a ref code * 'a code =
+    fun () -> perform MakeSlot'
+
+  let set_slot' : 'a. ('a ref code * 'a code) -> unit =
+    fun (r, c) -> perform (SetSlot' (r, c))
 
   let rec assoc : type a. a sym -> table -> a code =
     fun sym table -> match table with
@@ -176,36 +172,31 @@ struct
   let push : type a. a sym -> a code -> table ref -> unit =
     fun sym code table -> table := Cons (sym, code, !table)
 
-  let insert : type a b. b req prompt -> a sym -> table ref -> (unit -> a code) -> a code =
-    fun prompt sym table k ->
+  let insert : type a b. a sym -> table ref -> (unit -> a code) -> a code =
+    fun sym table k ->
       try assoc sym !table with
       | Not_found ->
-        let lhs, use = make_slot' prompt in
+        let lhs, use = make_slot' () in
         push sym use table;
-        set_slot' prompt (lhs, k ()); use
+        set_slot' (lhs, k ()); use
 
   let letrec rhs body =
-    let p = new_prompt () in
     let table = ref Nil in
     let rec resolve =
       { resolve = fun sym ->
-            insert p sym table @@ fun () ->
+            insert sym table @@ fun () ->
             rhs.rhs resolve sym }
     in
-    let rec handle = function
-      | MakeSlot' k ->
+    Rewrite.typed @@ match body resolve with
+      | effect MakeSlot' k ->
         add_attr "letrec:var"
           .< let x = Obj.magic () (* ref (fun _ -> assert false) *)
-              in .~(handle (k (.< x >.,
-                               add_attr "letrec:deref" .<!x>.))) >.
-      | SetSlot' ((lhs, rhs), k) ->
+              in .~(continue k (.< x >.,
+                                add_attr "letrec:deref" .<!x>.)) >.
+      | effect (SetSlot' (lhs, rhs)) k ->
         let set = add_attr "letrec:set" .< .~lhs := .~rhs >. in
-          .< (.~set ; .~(handle (k ()) )) >.
-      | Done e ->
-        add_attr "letrec:body" e
-  in
-  Rewrite.typed (handle (push_prompt p @@ fun () ->
-                         Done (body resolve)))
+          .< (.~set ; .~(continue k () )) >.
+      | e -> add_attr "letrec:body" e
 end
 
 (* Define a simple 'letrec' for monomorphic recursion
