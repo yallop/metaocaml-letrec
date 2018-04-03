@@ -1,6 +1,6 @@
 version = "dev"
 description = "let rec generation for MetaOCaml"
-requires = "delimcc compiler-libs"
+requires = "compiler-libs"
 archive(byte) = "letrec.cma"
 archive(native) = "letrec.cmxa"
 exists_if = "letrec.cma"
