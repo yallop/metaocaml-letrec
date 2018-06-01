@@ -5,126 +5,14 @@
  * See the file LICENSE for details.
  *)
 
-
 (* TODO: compute cliques so that 'ack 3' generates
 
       let f4 n = n + 1 in
-
       let rec f3 n = if n = 0 then f4 1 else f4 (f3 (n - 1)) in
-
       let rec f2 n = if n = 0 then f3 1 else f3 (f2 (n - 1)) in
-
       let rec f1 n = if n = 0 then f2 1 else f2 (f1 (n - 1)) in
-
-       in f1
+      in f1
 *)
-
-(* Code is defined in 4.04.0+BER as
-     type code_repr = 
-       Code of flvars * Parsetree.expression
-
-   and in 4.03.0+effects-ber as
-
-     type code_repr =
-         Code of string loc heap * Parsetree.expression
-
-   I think in both cases we can safely ignore the first component.
-
-   Question in both cases: what happens if we genlet an expression
-   that refers to a rec-bound variable?  I *think* that the genlet
-   returns the variable immediately when executed.
-*)
-
-let add_attr (type a) s (c : a code) : a code =
-  let h, e = Obj.magic c in
-  Obj.magic (h, Ast_helper.Exp.attr e
-               (Location.mknoloc s, Parsetree.PStr []))
-
-let has_attr name attrs =
-  List.exists (fun ({Asttypes.txt},_) -> txt = name) attrs
-
-let remove_attr name attrs =
-  snd (List.partition (fun ({Asttypes.txt},_) -> txt = name) attrs)
-
-(* Rewrite:
-
-   let xᵢ[@letrec:var] = ref dummy in
-   (xᵢ := eᵢ)[@letrec:set];
-   e[@letrec:body]
-   ↝
-   let rec xᵢ = eᵢ[!xᵢ:=xᵢ] in e[!xᵢ:=xᵢ]
-*)
-module Rewrite : sig
-  val typed : 'a code -> 'a code
-end =
-struct
-  open Ast_mapper
-  open Asttypes
-  open Parsetree
-
-  let letrec : (string * expression) list -> expression -> expression =
-    fun bindings e ->
-      let binding (x, e) =
-        { pvb_pat = Ast_helper.Pat.var (Location.mknoloc x);
-          pvb_expr = e;
-          pvb_attributes = [];
-          pvb_loc = Location.none } in
-      match bindings with
-      | [] -> e
-      | _ ->
-        { pexp_desc = Pexp_let (Recursive, List.map binding bindings, e);
-          pexp_loc = Location.none;
-          pexp_attributes = [] }
-
-  let underef : expression -> expression =
-    let rec m = { default_mapper with
-                  expr = fun map e -> 
-                    match e with
-                    | { pexp_desc =
-                          Pexp_apply (_, [_, ({pexp_desc=Pexp_ident _} as e)]);
-                        pexp_attributes=ats }
-                      when has_attr "letrec:deref" ats ->
-                      {e with pexp_attributes = remove_attr "letrec:deref" ats}
-                    | e -> default_mapper.expr map e
-                } in
-    m.expr m
-
-  type letrec_expression =
-      Init of expression (* let x = ref dummy in e *)
-    | Set of string * expression * expression (* x := rhs; e *)
-    | Body of expression
-
-  let rec classify_expression : expression -> letrec_expression = function
-    | { pexp_attributes=ats } as e
-      when has_attr "letrec:body" ats ->
-      Body {e with pexp_attributes = remove_attr "letrec:body" ats}
-
-    | {pexp_desc=Pexp_let (_, [_], e'); pexp_attributes=ats}
-      when has_attr "letrec:var" ats ->
-      Init e'
-    | {pexp_desc = 
-         Pexp_sequence ({pexp_desc=Pexp_apply
-                             (_, [(_,{pexp_desc=Pexp_ident
-                                          {txt=Longident.Lident x}});
-                                  (_,rhs)]);
-                         pexp_attributes=ats},
-                        e')}
-      when has_attr "letrec:set" ats ->
-      Set (x, rhs, e')
-    | _ -> failwith "translation failure"
-
-  let rec untyped' : (string * expression) list -> expression -> expression =
-    fun binds exp -> match classify_expression exp with
-        Init e -> untyped' binds e
-      | Set (x, rhs, e) -> untyped' ((x,underef rhs) :: binds) e
-      | Body e -> letrec binds (underef e)
-
-  let untyped : expression -> expression =
-    fun e -> untyped' [] e
-
-  let typed : type a. a code -> a code =
-    fun c -> let x, y = Obj.magic c in Obj.magic (x, untyped y)
-end
 
 type (_,_) eql = Refl : ('a,'a) eql
 
@@ -151,15 +39,6 @@ struct
     Nil : table
   | Cons : 'a sym * 'a code * table -> table
 
-  effect MakeSlot' : ('a ref code * 'a code)
-  effect SetSlot' : ('a ref code * 'a code) -> unit
-
-  let make_slot' : 'a. unit -> 'a ref code * 'a code =
-    fun () -> perform MakeSlot'
-
-  let set_slot' : 'a. ('a ref code * 'a code) -> unit =
-    fun (r, c) -> perform (SetSlot' (r, c))
-
   let rec assoc : type a. a sym -> table -> a code =
     fun sym table -> match table with
         Nil -> raise Not_found
@@ -169,34 +48,21 @@ struct
           | None -> assoc sym xs
         end
 
-  let push : type a. a sym -> a code -> table ref -> unit =
-    fun sym code table -> table := Cons (sym, code, !table)
+  let push sym code table = table := Cons (sym, code, !table)
 
-  let insert : type a b. a sym -> table ref -> (unit -> a code) -> a code =
-    fun sym table k ->
-      try assoc sym !table with
-      | Not_found ->
-        let lhs, use = make_slot' () in
-        push sym use table;
-        set_slot' (lhs, k ()); use
-
-  let letrec rhs body =
+  let letrec {rhs} body =
     let table = ref Nil in
-    let rec resolve =
-      { resolve = fun sym ->
-            insert sym table @@ fun () ->
-            rhs.rhs resolve sym }
+    Genletrec.genletrec_locus @@ fun locus ->
+    let rec resolver = 
+      { resolve = fun symbol ->
+        try assoc symbol !table with
+          Not_found ->
+          Genletrec.genletrec locus
+            (fun x -> 
+              push symbol x table;
+              rhs resolver symbol) }
     in
-    Rewrite.typed @@ match body resolve with
-      | effect MakeSlot' k ->
-        add_attr "letrec:var"
-          .< let x = Obj.magic () (* ref (fun _ -> assert false) *)
-              in .~(continue k (.< x >.,
-                                add_attr "letrec:deref" .<!x>.)) >.
-      | effect (SetSlot' (lhs, rhs)) k ->
-        let set = add_attr "letrec:set" .< .~lhs := .~rhs >. in
-          .< (.~set ; .~(continue k () )) >.
-      | e -> add_attr "letrec:body" e
+    body resolver
 end
 
 (* Define a simple 'letrec' for monomorphic recursion

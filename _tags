@@ -3,5 +3,5 @@
 "ppx": include
 
 <lib_test/*.*>: ppx(../ppx_letrec.native)
-<lib/letrec.*>: package(compiler-libs)
+<lib/genletrec.*>: package(compiler-libs)
 <ppx/*.*>: package(compiler-libs)
