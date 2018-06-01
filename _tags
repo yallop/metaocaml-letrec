@@ -3,5 +3,5 @@
 "ppx": include
 
 <lib_test/*.*>: package(delimcc), ppx(../ppx_letrec.byte)
-<lib/letrec.*>: package(delimcc,compiler-libs)
+<lib/genletrec.*>: package(delimcc,compiler-libs)
 <ppx/*.*>: package(compiler-libs)
