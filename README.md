@@ -52,8 +52,17 @@ Within this `4.04.0+BER` switch the `metaocaml-letrec` package can be installed 
 opam pin add letrec git@github.com:yallop/metaocaml-letrec.git`
 ```
 
+### Further reading
+
+The following extended abstract has more details about the design and implementation of `metaocaml-letrec`:
+
+&nbsp;&nbsp;&nbsp;[Generating mutually recursive definitions][ml18-paper]  
+&nbsp;&nbsp;&nbsp;[ML Family Workshop 2018][ml-workshop-2018]  
+&nbsp;&nbsp;&nbsp;Jeremy Yallop and Oleg Kiselyov
 
 [oleg-ltu-ackermann-comment]: http://lambda-the-ultimate.org/node/4039#comment-61431
 [oleg]: http://okmij.org/ftp/
 [ber-metaocaml]: http://okmij.org/ftp/ML/MetaOCaml.html
 [metaocaml-switch]: https://github.com/ocaml/opam-repository/tree/master/compilers/4.04.0/4.04.0%2BBER
+[ml-workshop-2018]: http://www.mlworkshop.org/workshops/ml2018
+[ml18-paper]: https://www.cl.cam.ac.uk/~jdy22/papers/generating-mutually-recursive-definitions.pdf
