@@ -16,4 +16,4 @@ depends: [
   "ocamlbuild" {build}
   "delimcc"
 ]
-available: [ compiler = "4.04.0+BER" ]
+available: [ compiler = "4.07.1+BER" | compiler = "4.04.0+BER" ]
