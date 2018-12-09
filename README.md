@@ -49,7 +49,7 @@ eval $(opam config env)
 Within this `4.04.0+BER` switch the `metaocaml-letrec` package can be installed as follows:
 
 ```
-opam pin add letrec git@github.com:yallop/metaocaml-letrec.git`
+opam pin add letrec git@github.com:yallop/metaocaml-letrec.git
 ```
 
 ### Further reading
