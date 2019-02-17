@@ -54,15 +54,15 @@ opam pin add letrec git@github.com:yallop/metaocaml-letrec.git
 
 ### Further reading
 
-The following extended abstract has more details about the design and implementation of `metaocaml-letrec`:
+The following paper has more details about the design and implementation of `metaocaml-letrec`:
 
-&nbsp;&nbsp;&nbsp;[Generating mutually recursive definitions][ml18-paper]  
+&nbsp;&nbsp;&nbsp;[Generating mutually recursive definitions][pepm19-paper]  
 &nbsp;&nbsp;&nbsp;Jeremy Yallop and Oleg Kiselyov  
-&nbsp;&nbsp;&nbsp;[ML Family Workshop 2018][ml-workshop-2018]
+&nbsp;&nbsp;&nbsp;[PEPM 2019][pepm-2019]
 
 [oleg-ltu-ackermann-comment]: http://lambda-the-ultimate.org/node/4039#comment-61431
 [oleg]: http://okmij.org/ftp/
 [ber-metaocaml]: http://okmij.org/ftp/ML/MetaOCaml.html
 [metaocaml-switch]: https://github.com/ocaml/opam-repository/tree/master/compilers/4.04.0/4.04.0%2BBER
-[ml-workshop-2018]: http://www.mlworkshop.org/workshops/ml2018
-[ml18-paper]: https://www.cl.cam.ac.uk/~jdy22/papers/generating-mutually-recursive-definitions.pdf
+[pepm-2019]: https://popl19.sigplan.org/track/pepm-2019-papers
+[pepm19-paper]: https://www.cl.cam.ac.uk/~jdy22/papers/generating-mutually-recursive-definitions-short-paper.pdf
