@@ -17,7 +17,7 @@ install:
           _build/ppx/ppx_letrec.byte  
 
 uninstall:
-	$(OCAMLBUILD) remove letrec
+	ocamlfind remove letrec
 
 clean:
 	$(OCAMLBUILD) -clean
