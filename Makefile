@@ -1,5 +1,4 @@
-OCAMLBUILD=ocamlbuild -use-ocamlfind -ocamlc '-toolchain metaocaml ocamlc' \
-                                     -ocamlopt '-toolchain metaocaml ocamlopt'
+OCAMLBUILD=ocamlbuild -use-ocamlfind
 
 all: check-compiler letrec.cma letrec.cmxa ppx_letrec.byte
 
