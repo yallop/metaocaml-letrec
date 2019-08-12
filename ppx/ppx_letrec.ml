@@ -15,7 +15,7 @@ open Parsetree
 
 (* TODO: more careful handling of locations *)
 let map_let mapper = function
-  | { pexp_desc = Pexp_extension ({txt = "staged"; loc}, str) } ->
+  | { pexp_desc = Pexp_extension ({txt = "staged"; loc}, str) ; pexp_attributes } ->
     let str = default_mapper.payload mapper str in
     begin match str with
       | PStr [ {pstr_desc = 
@@ -23,7 +23,7 @@ let map_let mapper = function
         begin match vbs with
           | [{ pvb_pat=({ppat_desc=Ppat_var _} as x);
                pvb_expr = rhs }] ->
-            {e with pexp_desc =
+            {e with pexp_attributes ; pexp_desc =
                       Pexp_apply ({e with pexp_desc = Pexp_ident (Location.mknoloc (Longident.parse "Letrec.letrec"))},
                                   [(Nolabel, {rhs with pexp_desc =
                                                          Pexp_fun (Nolabel, None, x, rhs)});
