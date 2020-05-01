@@ -1,4 +1,4 @@
-version = "dev"
+version = "0.1"
 description = "let rec generation for MetaOCaml"
 requires = "delimcc compiler-libs"
 archive(byte) = "letrec.cma"
