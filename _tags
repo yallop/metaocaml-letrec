@@ -4,4 +4,5 @@
 
 <lib_test/*.*>: package(delimcc), ppx(../ppx_letrec.byte), open_print_code
 <lib/genletrec.*>: package(delimcc,compiler-libs)
+<lib/attr_support.*>: package(compiler-libs)
 <ppx/*.*>: package(compiler-libs)

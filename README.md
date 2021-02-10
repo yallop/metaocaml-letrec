@@ -42,11 +42,11 @@ and many more examples.
 `metaocaml-letrec` currently requires [BER MetaOCaml N107][ber-metaocaml], which is [available as an `OPAM` switch][metaocaml-switch]:
 
 ```
-opam switch install 4.07.1+BER
+opam switch install 4.11.1+BER
 eval $(opam env)
 ```
 
-Within this `4.07.1+BER` switch the `metaocaml-letrec` package can be installed as follows:
+Within this `4.11.1+BER` switch the `metaocaml-letrec` package can be installed as follows:
 
 ```
 opam pin add letrec git@github.com:yallop/metaocaml-letrec.git
@@ -63,6 +63,6 @@ The following paper has more details about the design and implementation of `met
 [oleg-ltu-ackermann-comment]: http://lambda-the-ultimate.org/node/4039#comment-61431
 [oleg]: http://okmij.org/ftp/
 [ber-metaocaml]: http://okmij.org/ftp/ML/MetaOCaml.html
-[metaocaml-switch]: https://github.com/ocaml/opam-repository/blob/master/packages/ocaml-variants/ocaml-variants.4.07.1+BER/opam
+[metaocaml-switch]: https://github.com/ocaml/opam-repository/blob/master/packages/ocaml-variants/ocaml-variants.4.11.1+BER/opam
 [pepm-2019]: https://popl19.sigplan.org/track/pepm-2019-papers
 [pepm19-paper]: https://www.cl.cam.ac.uk/~jdy22/papers/generating-mutually-recursive-definitions-short-paper.pdf
