@@ -4,6 +4,11 @@
    let rec%staged f = e in e'
    ~>
      Letrec.letrec (fun f -> e) (fun f -> e')
+
+   let rec%staged[@eq p] f = e in e'
+   ~>
+     Letrec.letrec ~equal:p (fun f -> e) (fun f -> e')
+
 *)
 
 (* TODO: support for the fancier polymorphic letrec *)
@@ -12,6 +17,10 @@ open Ast_mapper
 open Ast_helper
 open Asttypes
 open Parsetree
+
+let rec filter_map f = function
+  | [] -> []
+  | x :: xs -> match f x with None -> filter_map f xs | Some y -> y :: filter_map f xs
 
 (* TODO: more careful handling of locations *)
 let map_let mapper = function
@@ -22,9 +31,15 @@ let map_let mapper = function
                   Pstr_eval ({pexp_desc = Pexp_let (Recursive, vbs, body)} as e,_)} ] ->
         begin match vbs with
           | [{ pvb_pat=({ppat_desc=Ppat_var _} as x);
-               pvb_expr = rhs }] ->
-            {e with pexp_attributes ; pexp_desc =
+               pvb_expr = rhs; pvb_attributes }] ->
+             let eq = match Attr_support.find_attr "eq" pvb_attributes with
+               | None -> []
+               | Some (PStr [{pstr_desc = Pstr_eval (eq,_)}]) -> [Labelled "equal", eq]
+               | Some _ -> failwith "the attribute [@eq e] is of the wrong form"
+             in
+             {e with pexp_attributes ; pexp_desc =
                       Pexp_apply ({e with pexp_desc = Pexp_ident (Location.mknoloc (Longident.parse "Letrec.letrec"))},
+                                  eq @
                                   [(Nolabel, {rhs with pexp_desc =
                                                          Pexp_fun (Nolabel, None, x, rhs)});
                                    (Nolabel, {rhs with pexp_desc =

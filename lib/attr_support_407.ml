@@ -22,6 +22,11 @@ let add_attr (type a) s (c : a code) : a code =
 let has_attr name attrs =
   List.exists (fun ({Asttypes.txt},_) -> txt = name) attrs
 
+let find_attr name attrs =
+  match List.find (fun ({Asttypes.txt}, _) -> txt = name) attrs with
+  | (_,p) -> Some p
+  | exception Not_found -> None
+
 let remove_attr name attrs =
   snd (List.partition (fun ({Asttypes.txt},_) -> txt = name) attrs)
 
