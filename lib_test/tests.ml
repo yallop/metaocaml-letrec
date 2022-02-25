@@ -28,4 +28,7 @@ let () = begin
 
   pr "(* Mutual recursion with non-functions *)@\n";
   pr "%a@." print_code Recursive_values.(values 4);
+
+  pr "(* Custom equality for indexes *)@\n";
+  pr "%a@." print_code Custom_eq.evenp_oddp;
 end
