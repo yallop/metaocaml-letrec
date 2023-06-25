@@ -14,6 +14,9 @@ dispatch begin
      | "4.11.1" ->
         copy_rule "attr_support" "lib/attr_support_411.ml" "lib/attr_support.ml";
         flag ["ocaml"; "compile"; "open_print_code"] & S[A"-open"; A"Codelib"];
+     | "4.14.1" ->
+        copy_rule "attr_support" "lib/attr_support_414.ml" "lib/attr_support.ml";
+        flag ["ocaml"; "compile"; "open_print_code"] & S[A"-open"; A"Codelib"];
      | version ->
         Printf.kprintf failwith "Unsupported OCaml version %s" version
      end

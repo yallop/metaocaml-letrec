@@ -3,6 +3,7 @@
 "ppx": include
 
 <lib_test/*.*>: package(delimcc), ppx(../ppx_letrec.byte), open_print_code
-<lib/genletrec.*>: package(delimcc,compiler-libs)
-<lib/attr_support.*>: package(compiler-libs)
+<lib/genletrec.*>: package(delimcc,compiler-libs), open_print_code
+<lib/letrec.*>: open_print_code
+<lib/attr_support.*>: package(compiler-libs), open_print_code
 <ppx/*.*>: package(compiler-libs)
