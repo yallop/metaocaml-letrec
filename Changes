@@ -1,3 +1,7 @@
+## letrec 0.2.1
+
+- Add support for BER n114
+
 ## letrec 0.2.0
 
 - Add support for custom equality in the syntax extension:
