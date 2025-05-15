@@ -1,5 +1,7 @@
 # metaocaml-letrec: flexible 'let rec' generation
 
+![GitHub Actions status](https://github.com/yallop/metaocaml-letrec/workflows/test/badge.svg)
+
 In typed MetaML-based systems such as MetaOCaml it is difficult or impossible to generate mutually-recursive binding groups whose size is not known in advance.  For example, suppose (following an example of Neil Jones expounded by [Oleg][oleg]) that you want to [specialize the Ackermann function][oleg-ltu-ackermann-comment]
 
 ```ocaml
