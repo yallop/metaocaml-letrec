@@ -5,14 +5,6 @@
  * See the file LICENSE for details.
  *)
 
-(* Rewrite:
-
-   let xᵢ[@letrec:var] = ref dummy in
-   (xᵢ := eᵢ)[@letrec:set];
-   e[@letrec:body]
-   ↝
-   let rec xᵢ = eᵢ[!xᵢ:=xᵢ] in e[!xᵢ:=xᵢ]
-*)
 module Rewrite : sig
   val typed : 'a code -> 'a code
 end =
@@ -25,6 +17,7 @@ struct
     fun bindings e ->
       let binding (x, e) =
         { pvb_pat = Ast_helper.Pat.var (Location.mknoloc x);
+          pvb_constraint = None;
           pvb_expr = e;
           pvb_attributes = [];
           pvb_loc = Location.none } in
@@ -82,39 +75,31 @@ struct
     fun c -> let x, y = Obj.magic c in Obj.magic (x, untyped y)
 end
 
-open Delimcc
+type locus_t = int
+let counter = ref 0
+let new_locus () = incr counter; !counter
 
-type req = 
-  | Done
-  | MakeSlot: ('a ref code * 'a code -> req) -> req
-  | SetSlot : ('a ref code * 'a code) * (unit -> req) -> req
-
-type locus_t = req prompt
-
-let from_option = function Some x -> x | None -> failwith "fromoption";;
-let read_answer r = let v = from_option !r in r := None; v
+type _ Effect.t +=
+     MakeSlot : locus_t -> ('a ref code * 'a code) Effect.t
+   | SetSlot : (locus_t * 'a ref code * 'a code) -> unit Effect.t
 
 let genletrec_locus : type a. (locus_t -> a code) -> a code
   = fun body ->
-  let p = new_prompt () in
-  let r = ref None in
-  let rec handle = function
-    | MakeSlot k ->
+  let loc = new_locus () in
+  Rewrite.typed @@ match body loc with
+    | effect MakeSlot loc', k when loc = loc' ->
        Attr_support.add_attr "letrec:var"
        .< let x = Obj.magic () (* ref (fun _ -> assert false) *)
-              in .~(handle (k (.< x >.,
-                               Attr_support.add_attr "letrec:deref" .<!x>.))) >.
-    | SetSlot ((lhs, rhs), k) ->
+              in .~(Effect.Deep.continue k (.< x >.,
+                               Attr_support.add_attr "letrec:deref" .<!x>.)) >.
+    | effect SetSlot (loc', lhs, rhs), k when loc = loc' ->
        let set = Attr_support.add_attr "letrec:set" .< .~lhs := .~rhs >. in
-       .< (.~set ; .~(handle (k ()) )) >.
-    | Done ->
-       Attr_support.add_attr "letrec:body" (read_answer r)
-    in
-    Rewrite.typed (handle (push_prompt p (fun () ->
-    (r := Some (body p); Done))))
+       .< (.~set ; .~(Effect.Deep.continue k ())) >.
+    | e ->
+       Attr_support.add_attr "letrec:body" e
 
 let genletrec : type a b. locus_t -> (a code -> a code) -> a code
-  = fun p f ->
-      let lhs, use = shift p (fun k -> MakeSlot k) in
-      let () = shift p (fun k -> SetSlot ((lhs, f use), k)) in
+  = fun locus f ->
+      let lhs, use = Effect.perform (MakeSlot locus) in
+      let () = Effect.perform (SetSlot (locus, lhs, f use)) in
       use

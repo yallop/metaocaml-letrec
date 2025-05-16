@@ -37,13 +37,17 @@ let map_let mapper = function
                | Some (PStr [{pstr_desc = Pstr_eval (eq,_)}]) -> [Labelled "equal", eq]
                | Some _ -> failwith "the attribute [@eq e] is of the wrong form"
              in
+             let params = [{ pparam_loc = Location.none;
+                             pparam_desc = Pparam_val (Nolabel, None, x) } ] in
+             let id = Location.mknoloc
+                        (Option.get (Longident.unflatten ["Letrec";"letrec"])) in
              {e with pexp_attributes ; pexp_desc =
-                      Pexp_apply ({e with pexp_desc = Pexp_ident (Location.mknoloc (Longident.parse "Letrec.letrec"))},
+                      Pexp_apply ({e with pexp_desc = Pexp_ident id},
                                   eq @
                                   [(Nolabel, {rhs with pexp_desc =
-                                                         Pexp_fun (Nolabel, None, x, rhs)});
+                                                         Pexp_function (params, None, Pfunction_body rhs)});
                                    (Nolabel, {rhs with pexp_desc =
-                                                         Pexp_fun (Nolabel, None, x, body)})])}
+                                                         Pexp_function (params, None, Pfunction_body body)})])}
           | [_] -> 
             failwith "let%staged requires a binding of the form: let%staged rec f = ..."
           | _ ->
