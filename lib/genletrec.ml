@@ -13,12 +13,23 @@ struct
   open Asttypes
   open Parsetree
 
+  (* Convert nested functions fun x -> fun y -> e
+     into multi-argument functions fun x y -> e *)
+  let rec squish_arity : expression -> expression = function
+    | { pexp_desc =
+          Pexp_function (ps, None,
+                         Pfunction_body ({pexp_desc =
+                                            Pexp_function (ps', None, b)} as d')) } as d ->
+       squish_arity { d with pexp_desc = Pexp_function (ps @ ps', None, b);
+                             pexp_attributes = d.pexp_attributes @ d'.pexp_attributes }
+    | e -> e
+
   let letrec : (string * expression) list -> expression -> expression =
     fun bindings e ->
       let binding (x, e) =
         { pvb_pat = Ast_helper.Pat.var (Location.mknoloc x);
           pvb_constraint = None;
-          pvb_expr = e;
+          pvb_expr = squish_arity e;
           pvb_attributes = [];
           pvb_loc = Location.none } in
       match bindings with
