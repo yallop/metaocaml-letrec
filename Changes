@@ -1,3 +1,7 @@
+## letrec 0.3.1
+
+- Convert generated nested functions into multi-argument functions 
+
 ## letrec 0.3.0
 
 - Support only BER n153
