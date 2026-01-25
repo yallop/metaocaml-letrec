@@ -31,4 +31,7 @@ let () = begin
 
   pr "(* Custom equality for indexes *)@\n";
   pr "%a@." print_code Custom_eq.evenp_oddp;
+
+  pr "(* Generating functions of varying arity *)@\n";
+  pr "%a@." print_code Arity.(sumn Sym.(S (S (S Z))));
 end
