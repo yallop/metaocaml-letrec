@@ -1,4 +1,4 @@
-version = "0.3.0"
+version = "0.3.1"
 description = "let rec generation for MetaOCaml"
 requires = "compiler-libs"
 archive(byte) = "letrec.cma"
